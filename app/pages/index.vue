@@ -25,12 +25,12 @@ onMounted(() => {
       <!-- Inner Spinner -->
       <div class="absolute size-20 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
       <!-- Logo or Icon in center -->
-      <UIcon name="i-lucide-layout-dashboard" class="absolute size-8 text-primary animate-bounce" />
+      <span class="absolute flex size-14 items-center justify-center rounded-2xl bg-primary text-lg font-bold text-white shadow-lg shadow-primary/25">OV</span>
     </div>
     
     <div class="mt-8 flex flex-col items-center gap-2 text-center font-sans">
-      <h2 class="text-xl font-semibold tracking-tight animate-pulse LaoFont">ກຳລັງໂຫລດລະບົບ...</h2>
-      <p class="text-sm text-neutral-500 dark:text-neutral-400">ກະລຸນາລໍຖ້າ</p>
+      <h2 class="text-xl font-semibold tracking-tight animate-pulse">กำลังเตรียม OneVision Control Center...</h2>
+      <p class="text-sm text-neutral-500 dark:text-neutral-400">กำลังโหลดข้อมูลและการเชื่อมต่อ</p>
     </div>
 
     <!-- Background Decoration -->
@@ -57,7 +57,4 @@ onMounted(() => {
   50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
 }
 
-.LaoFont {
-  font-family: 'Noto Sans Lao', sans-serif;
-}
 </style>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { decryptPassword, hashPassword, comparePassword } from '../../../server/utils/crypto'
+import { decryptPassword, hashUserPassword, comparePassword } from '../../../server/utils/crypto'
 import { encryptPassword } from '../../../app/utils/crypto'
 
 describe('Crypto Utilities', () => {
@@ -14,7 +14,8 @@ describe('Crypto Utilities', () => {
     })
 
     it('should hash and compare passwords correctly', async () => {
-        const hash = await hashPassword(rawPassword)
+        const hash = await hashUserPassword(rawPassword)
+        expect(hash).toMatch(/^pbkdf2\$sha256\$180000\$[0-9a-f]{32}\$[0-9a-f]{64}$/)
         expect(hash).not.toBe(rawPassword)
 
         const isMatch = await comparePassword(rawPassword, hash)
@@ -22,6 +23,13 @@ describe('Crypto Utilities', () => {
 
         const isNotMatch = await comparePassword('wrong-password', hash)
         expect(isNotMatch).toBe(false)
+    })
+
+    it('should compare the database PBKDF2-SHA256 format', async () => {
+        const hash = 'pbkdf2$sha256$180000$73ac7e25ef4865551be113ff07acbb24$76a91328f8ee5d64114f544f10038a3c282e70fd1fe0f6afa2dd750666a1302d'
+
+        await expect(comparePassword('changeme', hash)).resolves.toBe(true)
+        await expect(comparePassword('wrong-password', hash)).resolves.toBe(false)
     })
 
     it('should throw error on invalid decryption', () => {

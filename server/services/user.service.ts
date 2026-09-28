@@ -1,5 +1,5 @@
 import { userRepository } from '../utils/repositories'
-import { hashPassword, comparePassword } from '../utils/crypto'
+import { hashUserPassword, comparePassword } from '../utils/crypto'
 
 export class UserService {
     async getUsers(params: { page: number; pageSize: number; search?: string; role?: string }) {
@@ -9,12 +9,11 @@ export class UserService {
         if (search) {
             where.OR = [
                 { name: { contains: search } },
-                { email: { contains: search } },
                 { username: { contains: search } }
             ]
         }
         if (role && role !== 'all') {
-            where.role = role
+            where.role = role.toLowerCase()
         }
 
         return await userRepository.findPaginated({
@@ -28,17 +27,24 @@ export class UserService {
     async createUser(data: any) {
         // Check duplicates logic could be here or in controller
         // Encryption/Hashing is a service responsibility
-        if (data.password) {
-            data.password = await hashPassword(data.password)
+        const userData = {
+            username: data.username,
+            name: data.name,
+            role: data.role || 'USER',
+            password: data.password ? await hashUserPassword(data.password) : '',
+            active: true
         }
-        return await userRepository.create(data)
+        return await userRepository.create(userData)
     }
 
     async updateUser(id: number, data: any) {
-        if (data.password) {
-            data.password = await hashPassword(data.password)
+        const userData = {
+            ...(data.username ? { username: data.username } : {}),
+            ...(data.name ? { name: data.name } : {}),
+            ...(data.role ? { role: data.role } : {}),
+            ...(data.password ? { password: await hashUserPassword(data.password) } : {})
         }
-        return await userRepository.update(id, data)
+        return await userRepository.update(id, userData)
     }
 
     async deleteUser(id: number) {
@@ -50,7 +56,7 @@ export class UserService {
         if (!user) return null
 
         let isMatch = false
-        if (user.password.startsWith('$2')) {
+        if (user.password.startsWith('$2') || user.password.startsWith('pbkdf2$')) {
             isMatch = await comparePassword(passwordFromClient, user.password)
         } else {
             isMatch = user.password === passwordFromClient

@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { NavigationMenuItem } from '@nuxt/ui'
+
 definePageMeta({
   layout: 'default'
 })
-import type { NavigationMenuItem } from '@nuxt/ui'
 
 const links = [[{
   label: 'General',
@@ -21,6 +22,14 @@ const links = [[{
   label: 'Security',
   icon: 'i-lucide-shield',
   to: '/settings/security'
+}, {
+  label: 'CVAT',
+  icon: 'i-lucide-scan-line',
+  to: '/settings/cvat'
+}, {
+  label: 'CCTV Cameras',
+  icon: 'i-lucide-video',
+  to: '/settings/cameras'
 }], [{
   label: 'Documentation',
   icon: 'i-lucide-book-open',
@@ -38,14 +47,14 @@ const links = [[{
         </template>
       </UDashboardNavbar>
 
-      <UDashboardToolbar>
+      <UDashboardToolbar class="overflow-x-auto">
         <!-- NOTE: The `-mx-1` class is used to align with the `DashboardSidebarCollapse` button here. -->
-        <UNavigationMenu :items="links" highlight class="-mx-1 flex-1" />
+        <UNavigationMenu :items="links" highlight class="-mx-1 min-w-max flex-1" />
       </UDashboardToolbar>
     </template>
 
     <template #body>
-      <div class="flex flex-col gap-4 sm:gap-6 lg:gap-12 w-full lg:max-w-2xl mx-auto">
+      <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6 lg:gap-12">
         <NuxtPage />
       </div>
     </template>

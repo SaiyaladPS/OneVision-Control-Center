@@ -3,26 +3,117 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  username String? @unique
-  email    String  @unique
-  password String
-  name     String?
-  avatar   String?
-  role     String  @default("USER")
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  name      String   @map("display_name")
+  role      String
+  password  String   @map("password_hash")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([role], map: "ix_users_role")
+  @@map("users")
 }
 
-model Customer {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  avatar    String?
-  status    String   @default("subscribed")
-  location  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Plate {
+  id                    BigInt  @id @default(autoincrement())
+  scanId                BigInt  @map("scan_id")
+  plateIndex            Int     @map("plate_index")
+  country               String  @db.VarChar(16)
+  province              String?
+  platePrefix           String? @map("plate_prefix")
+  plateNumber           String? @map("plate_number")
+  ocrText               String? @map("ocr_text")
+  ocrConfidence         Float   @default(0) @map("ocr_confidence")
+  detectionConfidence   Float   @default(0) @map("detection_confidence")
+  rawPlate              Json    @map("raw_plate")
+  confidenceLevel       String? @map("confidence_level")
+  cropImage             String? @map("crop_image")
+  ocrReadyImage         String? @map("ocr_ready_image")
+  overallConfidence     Float?  @map("overall_confidence")
+  platePrefixCode       String? @map("plate_prefix_code")
+  plateType             String? @map("plate_type")
+  provinceCode          String? @map("province_code")
+  recognitionConfidence Float?  @map("recognition_confidence")
+  vehicleImage          String? @map("vehicle_image")
+  vehicleType           String? @map("vehicle_type")
+  vehicleTypeConfidence Float?  @map("vehicle_type_confidence")
+  scanRun               ScanRun @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  @@index([plateNumber], map: "ix_plates_plate_number")
+  @@map("plates")
+}
+
+model ScanRun {
+  id               BigInt   @id @default(autoincrement())
+  sourcePath       String   @map("source_path")
+  annotatedImage   String?  @map("annotated_image")
+  plateCount       Int      @default(0) @map("plate_count")
+  scannedAt        DateTime @default(now()) @map("scanned_at") @db.Timestamptz(6)
+  rawResult        Json     @map("raw_result")
+  operatorId       Int?     @map("operator_id")
+  operatorName     String?  @map("operator_name")
+  operatorUsername String?  @map("operator_username")
+  mediaType        String?  @map("media_type")
+  outputVideo      String?  @map("output_video")
+  plates           Plate[]
+
+  @@index([operatorId], map: "ix_scan_runs_operator_id")
+  @@index([scannedAt(sort: Desc)], map: "ix_scan_runs_scanned_at")
+  @@map("scan_runs")
+}
+
+model DatasetAnnotation {
+  id          BigInt   @id @default(autoincrement())
+  datasetId   String   @unique @map("dataset_id")
+  date        String   @db.VarChar(8)
+  filename    String
+  country     String   @db.VarChar(16)
+  province    String?
+  platePrefix String?  @map("plate_prefix")
+  plateNumber String?  @map("plate_number")
+  status      String   @db.VarChar(16)
+  box         Json?
+  updatedBy   Int?     @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([date], map: "ix_dataset_annotations_date")
+  @@index([status], map: "ix_dataset_annotations_status")
+  @@map("dataset_annotations")
+}
+
+model CvatConnection {
+  id                   Int      @id @default(autoincrement())
+  name                 String   @unique
+  baseUrl              String   @map("base_url")
+  organization         String?
+  projectId            String?  @map("project_id")
+  taskId               String?  @map("task_id")
+  accessTokenEncrypted String   @map("access_token_encrypted")
+  isDefault            Boolean  @default(false) @map("is_default")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([isDefault], map: "ix_cvat_connections_default")
+  @@map("cvat_connections")
+}
+
+model Camera {
+  id          Int      @id @default(autoincrement())
+  host        String   @unique
+  streamUrl   String?  @map("stream_url")
+  label       String?
+  kind        String   @default("ip")
+  deviceIndex Int?     @map("device_index")
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([enabled], map: "ix_cameras_enabled")
+  @@map("cameras")
 }

@@ -26,10 +26,6 @@ const columns = computed(() => {
       header: 'Name'
     }, 
     {
-      accessorKey: 'email',
-      header: 'Email'
-    }, 
-    {
       accessorKey: 'role',
       header: 'Role'
     }, 
@@ -180,7 +176,7 @@ async function onConfirmDelete() {
             <UInput
               v-model="search"
               icon="i-lucide-search"
-              placeholder="Search by name or email..."
+              placeholder="Search by name or username..."
               class="w-64"
             />
             

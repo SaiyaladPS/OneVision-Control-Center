@@ -97,13 +97,8 @@ copy .env.example .env
 แก้ไขไฟล์ `.env` ดังนี้:
 
 ```env
-# การเชื่อมต่อ SQL Server
-DB_SERVER=ip-ของ-sql-server
-DB_PORT=1433
-DB_DATABASE=db_nuxt_template
-DB_USER=sa
-DB_PASSWORD=รหัสผ่าน-ของคุณ
-DATABASE_URL="sqlserver://ip-ของ-sql-server:1433;database=db_nuxt_template;user=sa;password=รหัสผ่าน;trustServerCertificate=true;encrypt=false"
+# Shared Car Scan / OneVision PostgreSQL dataset
+DATABASE_URL="postgresql://postgres:รหัสผ่าน@localhost:5432/car_scan"
 
 # Session Secret (ต้องมีความยาวอย่างน้อย 32 ตัวอักษร)
 NUXT_SESSION_PASSWORD=สตริงสุ่มของคุณอย่างน้อย32ตัวอักษร
@@ -114,15 +109,16 @@ SECRET_KEY=สตริงลับสำหรับเข้ารหัส
 
 > ⚠️ **สำคัญมาก**: `SECRET_KEY` ต้องมีค่าเดียวกันทั้งในไฟล์ `app/utils/crypto.ts` และ `server/utils/crypto.ts` และห้ามเด็ดขาดที่จะ Commit ค่านี้ขึ้น Git หรือโพสต์ไว้ที่สาธารณะ
 
-### ขั้นตอนที่ 4: สร้างตารางในฐานข้อมูล
+### ขั้นตอนที่ 4: ตรวจสอบ schema ของฐานข้อมูลที่มีอยู่
 
 ```bash
-bunx prisma db push
+bunx prisma db pull
+bunx prisma generate
 ```
 
 ### ขั้นตอนที่ 5: เพิ่มข้อมูลตั้งต้น (Seed)
 
-สร้าง Admin ค่าเริ่มต้นและข้อมูลตัวอย่าง Customers:
+เพิ่มหรืออัปเดต Admin ในฐานข้อมูลที่ใช้ร่วมกัน โดยไม่ลบข้อมูล Car Scan:
 
 ```bash
 bun prisma/seed.ts

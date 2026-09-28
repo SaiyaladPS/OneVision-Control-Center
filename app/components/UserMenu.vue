@@ -11,13 +11,15 @@ const appConfig = useAppConfig()
 const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
 const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
 
-const user = ref({
-  name: 'Benjamin Canac',
+const { user: sessionUser } = useUserSession()
+const sessionProfile = computed(() => sessionUser.value as unknown as { name?: string, avatar?: string } | undefined)
+const user = computed(() => ({
+  name: sessionProfile.value?.name || 'OneVision Admin',
   avatar: {
-    src: 'https://github.com/benjamincanac.png',
-    alt: 'Benjamin Canac'
+    src: sessionProfile.value?.avatar || '',
+    alt: sessionProfile.value?.name || 'OneVision Admin'
   }
-})
+}))
 
 const toast = useToast()
 
@@ -25,7 +27,7 @@ const logout = async () => {
   await $fetch('/api/auth/logout', { method: 'POST' })
   
   toast.add({
-    title: 'ອອກຈາກລະບົບສຳເລັດ',
+    title: 'ออกจากระบบสำเร็จ',
     icon: 'i-lucide-check',
     color: 'success'
   })

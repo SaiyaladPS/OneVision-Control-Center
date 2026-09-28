@@ -1,86 +1,56 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-const route = useRoute()
-const toast = useToast()
-
 const open = ref(false)
 
 const links = [[{
-  label: 'Home',
+  label: 'Overview',
   icon: 'i-lucide-house',
   to: '/dashboard'
-}, 
+},
 {
-  label: 'Users',
+  label: 'Reports',
+  icon: 'i-lucide-file-bar-chart',
+  to: '/reports'
+},
+{
+  label: 'Data Registry',
+  icon: 'i-lucide-database',
+  to: '/data'
+}, {
+  label: 'Dataset Manager',
+  icon: 'i-lucide-panels-top-left',
+  to: '/dataset'
+}, {
+  label: 'CVAT Workspace',
+  icon: 'i-lucide-scan-line',
+  to: '/cvat-workspace'
+}, {
+  label: 'Users & Access',
   icon: 'i-lucide-users',
   to: '/users'
-}, 
-{
-  label: 'Customers',
-  icon: 'i-lucide-contact',
-  to: '/customers'
-}, 
-// {
-//   label: 'Settings',
-//   to: '/settings',
-//   icon: 'i-lucide-settings',
-//   defaultOpen: true,
-//   type: 'trigger',
-//   children: [{
-//     label: 'General',
-//     to: '/settings',
-//     exact: true,
-//     onSelect: () => {
-//       open.value = false
-//     }
-//   }, {
-//     label: 'Members',
-//     to: '/settings/members',
-//     onSelect: () => {
-//       open.value = false
-//     }
-//   }, {
-//     label: 'Notifications',
-//     to: '/settings/notifications',
-//     onSelect: () => {
-//       open.value = false
-//     }
-//   }, {
-//     label: 'Security',
-//     to: '/settings/security',
-//     onSelect: () => {
-//       open.value = false
-//     }
-//   }]
-// }
-], 
-// [{
-//   label: 'Feedback',
-//   icon: 'i-lucide-message-circle',
-//   to: 'https://github.com/nuxt-ui-templates/dashboard',
-//   target: '_blank'
-// }, {
-//   label: 'Help & Support',
-//   icon: 'i-lucide-info',
-//   to: 'https://github.com/nuxt-ui-templates/dashboard',
-//   target: '_blank'
-// }]
-] satisfies NavigationMenuItem[][]
+}, {
+  label: 'CCTV Cameras',
+  icon: 'i-lucide-video',
+  to: '/settings/cameras'
+}], [{
+  label: 'Settings',
+  icon: 'i-lucide-settings',
+  to: '/settings'
+}]] satisfies NavigationMenuItem[][]
 
 const groups = computed(() => [{
   id: 'links',
   label: 'Go to',
   items: links.flat()
 }, {
-  id: 'code',
-  label: 'Code',
+  id: 'help',
+  label: 'Workspace',
   items: [{
-    id: 'source',
-    label: 'View page source',
-    icon: 'i-simple-icons-github',
-    to: `https://github.com/nuxt-ui-templates/dashboard/blob/main/app/pages${route.path === '/' || route.path === '/dashboard' ? '/index' : route.path}.vue`,
-    target: '_blank'
+    id: 'status',
+    label: 'System status',
+    icon: 'i-lucide-activity',
+    to: '/dashboard'
   }]
 }])
 
@@ -135,13 +105,17 @@ const groups = computed(() => [{
           popover
         />
 
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[1]"
-          orientation="vertical"
-          tooltip
-          class="mt-auto"
-        />
+        <div class="mt-auto space-y-2">
+          <p v-if="!collapsed" class="px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">
+            Workspace
+          </p>
+          <UNavigationMenu
+            :collapsed="collapsed"
+            :items="links[1]"
+            orientation="vertical"
+            tooltip
+          />
+        </div>
       </template>
 
       <template #footer="{ collapsed }">

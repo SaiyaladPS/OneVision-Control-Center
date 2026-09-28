@@ -23,11 +23,11 @@ export default defineEventHandler(async (event) => {
     await setUserSession(event, {
         user: {
             id: user.id,
-            email: user.email,
+            email: `${user.username}@onevision.local`,
             username: user.username || '',
             name: user.name,
-            avatar: user.avatar || '',
-            role: (user as any).role || 'USER'
+            avatar: '',
+            role: String(user.role || 'USER').toUpperCase()
         },
         loggedInAt: new Date()
     })

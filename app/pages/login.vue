@@ -8,8 +8,8 @@ definePageMeta({
 })
 
 const schema = z.object({
-  username: z.string().min(3, 'ຊື່ຜູ້ໃຊ້ຕ້ອງມີຢ່າງໜ້ອຍ 3 ຕົວອັກສອນ'),
-  password: z.string().min(6, 'ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ 6 ຕົວອັກສອນ')
+  username: z.string().min(3, 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร'),
+  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร')
 })
 
 type Schema = z.output<typeof schema>
@@ -42,16 +42,16 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     await fetch()
 
     toast.add({
-      title: 'ເຂົ້າສຳເລັດ',
-      description: 'ຍິນດີຕ້ອນຮັບກັບເຂົ້າສູ່ລະບົບ',
+      title: 'เข้าสู่ระบบสำเร็จ',
+      description: 'ยินดีต้อนรับสู่ OneVision Control Center',
       color: 'success'
     })
     
     await navigateTo('/dashboard')
   } catch (err: any) {
     toast.add({
-      title: 'ເຂົ້າບ່ອນຜິດພາດ',
-      description: err.data?.message || 'ເກີດຂໍ້ຜິດພາດບາງຢ່າງ',
+      title: 'เข้าสู่ระบบไม่สำเร็จ',
+      description: err.data?.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง',
       color: 'error'
     })
   } finally {
@@ -71,9 +71,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     <UCard class="w-full shadow-xl border-neutral-200/50 dark:border-neutral-800/50 backdrop-blur-sm bg-white/80 dark:bg-neutral-900/80">
       <template #header>
         <div class="flex flex-col items-center gap-2 text-center">
-          <h1 class="text-2xl font-bold tracking-tight">ເຂົ້າສູ່ລະບົບ</h1>
+          <div class="mb-1 flex items-center justify-center gap-2"><span class="flex size-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white">OV</span><span class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">OneVision</span></div>
+          <h1 class="text-2xl font-bold tracking-tight">เข้าสู่ระบบ</h1>
           <p class="text-sm text-neutral-500 dark:text-neutral-400">
-            ປ້ອນຂໍ້ມູນເພື່ອເຂົ້າສູ່ລະບົບ
+            ป้อนข้อมูลเพื่อเข้าสู่ Control Center
           </p>
         </div>
       </template>
@@ -93,7 +94,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
           <template #label>
             <div class="flex items-center justify-between w-full">
               <span>Password</span>
-              <NuxtLink to="#" class="text-xs text-primary hover:underline">ລືມລະຫັດຜ່ານ?</NuxtLink>
+              <NuxtLink to="#" class="text-xs text-primary hover:underline">ลืมรหัสผ่าน?</NuxtLink>
             </div>
           </template>
           <UInput 
@@ -117,21 +118,21 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         </UFormField>
 
         <UButton type="submit" block :loading="loading" size="lg" class="mt-6 font-semibold">
-          ເຂົ້າສູ່ລະບົບ
+          เข้าสู่ระบบ
         </UButton>
       </UForm>
 
       <template #footer>
         <p class="text-center text-sm text-neutral-500">
-          ຍັງບໍ່ມີບັນຊີ? 
-          <NuxtLink to="#" class="text-primary font-medium hover:underline">ສະໝັກສະມາຊິກ</NuxtLink>
+          Need help signing in?
+          <NuxtLink to="#" class="text-primary font-medium hover:underline">Contact support</NuxtLink>
         </p>
       </template>
     </UCard>
     
     <div class="mt-8 text-center">
       <p class="text-xs text-neutral-400">
-        &copy; 2024 Admin Portal. All rights reserved.
+        &copy; 2026 OneVision Control Center. All rights reserved.
       </p>
     </div>
   </div>

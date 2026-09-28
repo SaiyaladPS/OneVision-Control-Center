@@ -16,12 +16,12 @@ useHead({
     { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Public+Sans:wght@400;500;600&family=Noto+Sans+Lao:wght@400;700&display=swap' }
   ],
   htmlAttrs: {
-    lang: 'lo'
+    lang: 'th'
   }
 })
 
-const title = 'Nuxt Dashboard Template'
-const description = 'A professional dashboard template built with Nuxt UI, featuring multiple pages, data visualization, and comprehensive management capabilities for creating powerful admin interfaces.'
+const title = 'OneVision Control Center'
+const description = 'ศูนย์กลางรายงานและจัดการข้อมูลของระบบ OneVision พร้อมข้อมูลแบบ Real-time'
 
 useSeoMeta({
   title,
@@ -45,7 +45,6 @@ useSeoMeta({
       <NuxtPage />
     </NuxtLayout>
 
-    <UNotifications />
-    <UModals />
+    <UToaster />
   </UApp>
 </template>

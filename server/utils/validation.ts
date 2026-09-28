@@ -22,11 +22,9 @@ export async function validateRequest<T extends z.ZodTypeAny>(
 // User Validation Schemas
 export const UserSchema = z.object({
     username: z.string().min(3),
-    email: z.string().email(),
     password: z.string().min(6),
     name: z.string().min(2),
-    role: z.enum(['ADMIN', 'EDITOR', 'USER']).default('USER'),
-    avatar: z.string().url().optional().nullable()
+    role: z.enum(['ADMIN', 'EDITOR', 'USER']).default('USER')
 })
 
 export const UserUpdateSchema = UserSchema.partial()

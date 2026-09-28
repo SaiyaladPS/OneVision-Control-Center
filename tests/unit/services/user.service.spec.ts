@@ -16,7 +16,7 @@ vi.mock('../../../server/utils/repositories', () => ({
 }))
 
 vi.mock('../../../server/utils/crypto', () => ({
-    hashPassword: vi.fn().mockImplementation((p) => Promise.resolve(`hashed_${p}`)),
+    hashUserPassword: vi.fn().mockImplementation((p) => Promise.resolve(`hashed_${p}`)),
     comparePassword: vi.fn().mockImplementation((p, h) => Promise.resolve(h === `hashed_${p}`))
 }))
 
@@ -31,7 +31,7 @@ describe('UserService', () => {
 
             await userService.createUser(userData)
 
-            expect(cryptoUtils.hashPassword).toHaveBeenCalledWith('password123')
+            expect(cryptoUtils.hashUserPassword).toHaveBeenCalledWith('password123')
             expect(userRepository.create).toHaveBeenCalledWith({
                 username: 'testuser',
                 password: 'hashed_password123'

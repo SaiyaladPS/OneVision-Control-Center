@@ -1,0 +1,12 @@
+import { createCamera, type CameraInput } from '../../services/camera.service'
+import { checkRole } from '../../utils/rbac'
+
+export default defineEventHandler(async (event) => {
+  await checkRole(event, ['ADMIN'])
+  try {
+    return sendSuccess(await createCamera(await readBody<CameraInput>(event)), 'CCTV camera created')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not create CCTV camera'
+    throw createError({ statusCode: message.includes('Unique constraint') ? 409 : 400, statusMessage: message })
+  }
+})

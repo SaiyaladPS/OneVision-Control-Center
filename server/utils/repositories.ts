@@ -29,7 +29,8 @@ export class UserRepository extends BaseRepository<any> {
 
 export class CustomerRepository extends BaseRepository<any> {
     constructor() {
-        super(prisma.customer)
+        // Legacy customer routes now point to the shared Car Scan dataset.
+        super(prisma.plate)
     }
 
     async findByEmail(email: string) {

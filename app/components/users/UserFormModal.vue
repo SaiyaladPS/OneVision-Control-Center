@@ -13,7 +13,6 @@ const emit = defineEmits(['success', 'close'])
 const schema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   name: z.string().min(2, 'Name is too short'),
-  email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
   role: z.enum(['ADMIN', 'EDITOR', 'USER'])
 })
@@ -23,7 +22,6 @@ type Schema = z.infer<typeof schema>
 const state = reactive({
   username: props.user?.username || '',
   name: props.user?.name || '',
-  email: props.user?.email || '',
   password: '',
   role: props.user?.role || 'USER'
 })
@@ -59,13 +57,11 @@ watch(() => props.user, (newVal) => {
   if (newVal) {
     state.username = newVal.username
     state.name = newVal.name
-    state.email = newVal.email
     state.role = newVal.role
     state.password = ''
   } else {
     state.username = ''
     state.name = ''
-    state.email = ''
     state.role = 'USER'
     state.password = ''
   }
@@ -86,10 +82,6 @@ watch(() => props.user, (newVal) => {
 
         <UFormField label="Name" name="name">
           <UInput v-model="state.name" class="w-full" icon="i-lucide-user" placeholder="Full Name" />
-        </UFormField>
-        
-        <UFormField label="Email" name="email">
-          <UInput v-model="state.email" type="email" class="w-full" icon="i-lucide-mail" placeholder="email@example.com" />
         </UFormField>
         
         <UFormField :label="user ? 'New Password (Optional)' : 'Password'" name="password">

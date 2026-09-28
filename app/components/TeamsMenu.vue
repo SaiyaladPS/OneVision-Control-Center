@@ -1,27 +1,19 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
-
 defineProps<{
   collapsed?: boolean
 }>()
 
 const teams = ref([{
-  label: 'Nuxt',
+  label: 'OneVision',
   avatar: {
-    src: 'https://github.com/nuxt.png',
-    alt: 'Nuxt'
+    text: 'OV',
+    alt: 'OneVision'
   }
 }, {
-  label: 'NuxtHub',
+  label: 'Operations',
   avatar: {
-    src: 'https://github.com/nuxt-hub.png',
-    alt: 'NuxtHub'
-  }
-}, {
-  label: 'NuxtLabs',
-  avatar: {
-    src: 'https://github.com/nuxtlabs.png',
-    alt: 'NuxtLabs'
+    text: 'OP',
+    alt: 'Operations'
   }
 }])
 const selectedTeam = ref(teams.value[0])

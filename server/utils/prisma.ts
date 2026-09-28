@@ -1,27 +1,23 @@
-import { PrismaClient } from '@prisma/client'
-import { PrismaMssql } from '@prisma/adapter-mssql'
+import type { PrismaClient as PrismaClientType } from '@prisma/client'
+import pkg from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 import { dbLogger } from './logger'
 
+const { PrismaClient } = pkg
+
+// Camera settings are shared with the Car Scan service through the cameras table.
 const globalForPrisma = globalThis as unknown as {
-    prisma: PrismaClient | undefined
+    prisma: PrismaClientType | undefined
 }
 
-const adapter = new PrismaMssql({
-    server: process.env.DB_SERVER!,
-    port: Number(process.env.DB_PORT),
-    database: process.env.DB_DATABASE!,
-    user: process.env.DB_USER!,
-    password: process.env.DB_PASSWORD!,
-    options: {
-        trustServerCertificate: true
-    },
-    // Connection Pool Configuration
-    pool: {
-        max: 10,             // Maximum number of connections in the pool
-        min: 0,              // Minimum number of connections in the pool
-        idleTimeoutMillis: 30000 // How long a connection can be idle before being closed
-    }
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || '',
+    max: 10,
+    idleTimeoutMillis: 30000,
+    allowExitOnIdle: true
 })
+const adapter = new PrismaPg(pool)
 
 export const prisma =
     globalForPrisma.prisma ??

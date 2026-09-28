@@ -26,6 +26,18 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    secretKey: process.env.SECRET_KEY || '',
+    oneVisionDataRoot: process.env.ONEVISION_DATA_ROOT || process.env.CAR_SCAN_OUTPUT_DIR || '',
+    cvat: {
+      baseUrl: process.env.CVAT_BASE_URL || '',
+      username: process.env.CVAT_USERNAME || '',
+      password: process.env.CVAT_PASSWORD || '',
+      tlsRejectUnauthorized: process.env.CVAT_TLS_REJECT_UNAUTHORIZED || 'true'
+    },
+    public: {
+      oneVisionWebSocketUrl: process.env.NUXT_PUBLIC_ONE_VISION_WEBSOCKET_URL || '',
+      passwordEncryptionKey: process.env.NUXT_PUBLIC_PASSWORD_ENCRYPTION_KEY || process.env.SECRET_KEY || ''
+    },
     session: {
       password: process.env.NUXT_SESSION_PASSWORD || '',
       cookie: {
