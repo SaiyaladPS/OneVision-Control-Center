@@ -4,7 +4,7 @@ import { customerRepository } from '../../utils/repositories'
 export default defineEventHandler(async (event) => {
     // Basic protection (can be ADMIN or EDITOR for customers)
     const { user } = await getUserSession(event)
-    if (!user || !['ADMIN', 'EDITOR'].includes((user as any).role)) {
+    if (!user || !['ADMIN', 'EDITOR', 'SUPERUSER'].includes((user as any).role)) {
         return sendApiError('Unauthorized', 403)
     }
 

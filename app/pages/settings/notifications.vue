@@ -6,34 +6,35 @@ const state = reactive<{ [key: string]: boolean }>({
   weekly_digest: false,
   important_updates: true
 })
+const { t } = useAppLocale()
 
 const sections = [{
-  title: 'Notification channels',
-  description: 'Where can we notify you?',
+  title: 'settings.notifications',
+  description: 'notifications.channelsDescription',
   fields: [{
     name: 'email',
-    label: 'Email',
-    description: 'Receive a daily email digest.'
+    label: 'notifications.email',
+    description: 'notifications.emailDescription'
   }, {
     name: 'desktop',
-    label: 'Desktop',
-    description: 'Receive desktop notifications.'
+    label: 'notifications.desktop',
+    description: 'notifications.desktopDescription'
   }]
 }, {
-  title: 'Account updates',
-  description: 'Receive updates about Nuxt UI.',
+  title: 'notifications.accountUpdates',
+  description: 'notifications.accountUpdatesDescription',
   fields: [{
     name: 'weekly_digest',
-    label: 'Weekly digest',
-    description: 'Receive a weekly digest of news.'
+    label: 'notifications.weeklyDigest',
+    description: 'notifications.weeklyDigestDescription'
   }, {
     name: 'product_updates',
-    label: 'Product updates',
-    description: 'Receive a monthly email with all new features and updates.'
+    label: 'notifications.productUpdates',
+    description: 'notifications.productUpdatesDescription'
   }, {
     name: 'important_updates',
-    label: 'Important updates',
-    description: 'Receive emails about important updates like security fixes, maintenance, etc.'
+    label: 'notifications.importantUpdates',
+    description: 'notifications.importantUpdatesDescription'
   }]
 }]
 
@@ -46,8 +47,8 @@ async function onChange() {
 <template>
   <div v-for="(section, index) in sections" :key="index">
     <UPageCard
-      :title="section.title"
-      :description="section.description"
+      :title="t(section.title)"
+      :description="t(section.description)"
       variant="naked"
       class="mb-4"
     />
@@ -57,8 +58,8 @@ async function onChange() {
         v-for="field in section.fields"
         :key="field.name"
         :name="field.name"
-        :label="field.label"
-        :description="field.description"
+        :label="t(field.label)"
+        :description="t(field.description)"
         class="flex items-center justify-between not-last:pb-4 gap-2"
       >
         <USwitch

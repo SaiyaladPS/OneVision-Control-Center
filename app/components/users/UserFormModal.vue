@@ -5,6 +5,8 @@ import { encryptPassword } from '~/utils/crypto'
 
 const props = defineProps<{
   user?: any // Edit mode if user is provided
+  roles?: Array<{ code: string; name?: string }>
+  statuses?: Array<{ code: string; name?: string }>
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
@@ -14,7 +16,8 @@ const schema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
   name: z.string().min(2, 'Name is too short'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional().or(z.literal('')),
-  role: z.enum(['ADMIN', 'EDITOR', 'USER'])
+  role: z.string().min(1),
+  status: z.string().min(1)
 })
 
 type Schema = z.infer<typeof schema>
@@ -23,7 +26,8 @@ const state = reactive({
   username: props.user?.username || '',
   name: props.user?.name || '',
   password: '',
-  role: props.user?.role || 'USER'
+  role: props.user?.role || 'USER',
+  status: props.user?.status || 'ACTIVE'
 })
 
 const { execute: saveUser, loading } = useApiAction()
@@ -58,11 +62,13 @@ watch(() => props.user, (newVal) => {
     state.username = newVal.username
     state.name = newVal.name
     state.role = newVal.role
+    state.status = newVal.status || (newVal.active ? 'ACTIVE' : 'INACTIVE')
     state.password = ''
   } else {
     state.username = ''
     state.name = ''
     state.role = 'USER'
+    state.status = 'ACTIVE'
     state.password = ''
   }
 }, { immediate: true })
@@ -70,8 +76,6 @@ watch(() => props.user, (newVal) => {
 
 <template>
   <UModal v-model:open="open" :title="user ? 'Edit User' : 'Create User'" :description="user ? `Editing ${user.name}` : 'Add a new user to the system'">
-    <slot /> <!-- This allows using a custom trigger button from parent -->
-
     <template #content>
       <UForm :schema="schema" :state="state" class="p-6 space-y-4" @submit="onSubmit">
         <h3 class="text-lg font-semibold mb-4">{{ user ? 'Edit User' : 'Create User' }}</h3>
@@ -105,7 +109,11 @@ watch(() => props.user, (newVal) => {
         </UFormField>
         
         <UFormField label="Role" name="role">
-          <USelect v-model="state.role" :items="['ADMIN', 'EDITOR', 'USER']" class="w-full" />
+            <USelect v-model="state.role" :items="(props.roles?.length ? props.roles : [{ code: 'ADMIN' }, { code: 'EDITOR' }, { code: 'USER' }, { code: 'SUPERUSER' }]).map(role => ({ label: role.name || role.code, value: role.code }))" class="w-full" />
+        </UFormField>
+
+        <UFormField label="Status" name="status">
+            <USelect v-model="state.status" :items="(props.statuses?.length ? props.statuses : [{ code: 'ACTIVE' }, { code: 'INACTIVE' }, { code: 'SUSPENDED' }]).map(status => ({ label: status.name || status.code, value: status.code }))" class="w-full" />
         </UFormField>
         
         <div class="flex justify-end gap-3 pt-6 border-t border-default">

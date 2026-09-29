@@ -8,12 +8,14 @@ export default defineEventHandler(async (event) => {
     const pageSize = Number(query.pageSize) || 10
     const search = query.search as string
     const role = query.role as string
+    const status = query.status as string
 
     const result = await userService.getUsers({
         page,
         pageSize,
         search,
-        role
+        role,
+        status
     })
 
     return sendSuccess(result)

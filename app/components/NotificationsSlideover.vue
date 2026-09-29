@@ -3,6 +3,7 @@ import { formatTimeAgo } from '@vueuse/core'
 import type { Notification } from '~/types'
 
 const { isNotificationsSlideoverOpen } = useDashboard()
+const { t } = useAppLocale()
 
 const { data: notifications } = await useFetch<Notification[]>('/api/notifications')
 </script>
@@ -10,7 +11,7 @@ const { data: notifications } = await useFetch<Notification[]>('/api/notificatio
 <template>
   <USlideover
     v-model:open="isNotificationsSlideoverOpen"
-    title="Notifications"
+    :title="t('notifications.title')"
   >
     <template #body>
       <NuxtLink

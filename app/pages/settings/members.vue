@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Member } from '~/types'
 
+const { t } = useAppLocale()
+
 const { data: members } = await useFetch<Member[]>('/api/members', { default: () => [] })
 
 const q = ref('')
@@ -15,14 +17,14 @@ const filteredMembers = computed(() => {
 <template>
   <div>
     <UPageCard
-      title="Members"
-      description="Invite new members by email address."
+      :title="t('members.title')"
+      :description="t('members.description')"
       variant="naked"
       orientation="horizontal"
       class="mb-4"
     >
       <UButton
-        label="Invite people"
+        :label="t('members.invite')"
         color="neutral"
         class="w-fit lg:ms-auto"
       />
@@ -33,7 +35,7 @@ const filteredMembers = computed(() => {
         <UInput
           v-model="q"
           icon="i-lucide-search"
-          placeholder="Search members"
+          :placeholder="t('members.search')"
           autofocus
           class="w-full"
         />

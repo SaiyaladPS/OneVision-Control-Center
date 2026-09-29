@@ -14,10 +14,10 @@ export default defineNuxtRouteMiddleware((to) => {
     }
 
     // Role-based protection
-    if (loggedIn.value && to.meta.roles) {
+        if (loggedIn.value && to.meta.roles) {
         const allowedRoles = to.meta.roles as string[]
         const userRole = (user.value as any)?.role || ''
-        if (!allowedRoles.includes(userRole)) {
+            if (userRole !== 'SUPERUSER' && !allowedRoles.includes(userRole)) {
             process.server && console.log(`[Auth] Forbidden - Role mismatch (${userRole} vs ${allowedRoles.join(',')})`)
             return navigateTo('/')
         }

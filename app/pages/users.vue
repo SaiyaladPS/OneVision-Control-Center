@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { RowSelectionState } from '@tanstack/table-core'
+import UCheckbox from '@nuxt/ui/components/Checkbox'
 
 definePageMeta({
   layout: 'default',
-  roles: ['ADMIN', 'EDITOR', 'USER'] // Allow view for others, but restrict actions
+  roles: ['ADMIN', 'EDITOR', 'USER', 'SUPERUSER'] // Allow view for others, but restrict actions
 })
 
 const { user } = useUserSession()
-const isAdmin = computed(() => (user.value as any)?.role === 'ADMIN')
-
-const UCheckbox = resolveComponent('UCheckbox')
+const isAdmin = computed(() => ['ADMIN', 'SUPERUSER'].includes((user.value as any)?.role))
 
 const columns = computed(() => {
   const cols = [
@@ -29,6 +28,10 @@ const columns = computed(() => {
       accessorKey: 'role',
       header: 'Role'
     }, 
+    {
+      accessorKey: 'status',
+      header: 'Status'
+    },
     {
       id: 'actions',
       header: ''
@@ -64,10 +67,11 @@ const page = ref(1)
 const pageSize = ref(10)
 const search = ref('')
 const roleFilter = ref('all')
+const statusFilter = ref('all')
 const columnVisibility = ref({})
 
 // Reset page when pageSize or roleFilter changes
-watch([pageSize, roleFilter], () => {
+watch([pageSize, roleFilter, statusFilter], () => {
   page.value = 1
 })
 const isModalOpen = ref(false)
@@ -81,9 +85,21 @@ const { data: users, refresh, pending } = useApi<any>(() => {
     search: search.value
   })
   if (roleFilter.value && roleFilter.value !== 'all') params.append('role', roleFilter.value)
+  if (statusFilter.value && statusFilter.value !== 'all') params.append('status', statusFilter.value)
   
   return `/api/users?${params.toString()}`
 })
+const { data: catalogResponse } = useApi<any>('/api/users/catalog')
+const catalogRoles = computed(() => catalogResponse.value?.data?.roles || [])
+const catalogStatuses = computed(() => catalogResponse.value?.data?.statuses || [])
+const roleFilterItems = computed(() => [
+  { label: 'All Roles', value: 'all' },
+  ...catalogRoles.value.map((role: any) => ({ label: role.name || role.code, value: role.code }))
+])
+const statusFilterItems = computed(() => [
+  { label: 'All Statuses', value: 'all' },
+  ...catalogStatuses.value.map((status: any) => ({ label: status.name || status.code, value: status.code }))
+])
 const { execute: deleteUser, loading: deleting } = useApiAction()
 
 // Table API
@@ -182,12 +198,13 @@ async function onConfirmDelete() {
             
             <USelect
               v-model="roleFilter"
-              :items="[
-                { label: 'All Roles', value: 'all' },
-                { label: 'Admin', value: 'ADMIN' },
-                { label: 'Editor', value: 'EDITOR' },
-                { label: 'User', value: 'USER' }
-              ]"
+              :items="roleFilterItems"
+              class="w-32"
+            />
+
+            <USelect
+              v-model="statusFilter"
+              :items="statusFilterItems"
               class="w-32"
             />
 
@@ -245,7 +262,7 @@ async function onConfirmDelete() {
 
     <template #body>
       <!-- Modals -->
-      <UsersUserFormModal v-model:open="isModalOpen" :user="editingUser" @success="onModalSuccess" @close="isModalOpen = false" />
+      <UsersUserFormModal v-model:open="isModalOpen" :user="editingUser" :roles="catalogRoles" :statuses="catalogStatuses" @success="onModalSuccess" @close="isModalOpen = false" />
       <ConfirmModal
         v-model:open="isConfirmOpen"
         :title="confirmTarget?.type === 'bulk' ? 'ລົບຂໍ້ມູນທີ່ເລືອກ' : 'ລົບຂໍ້ມູນຜູ້ໃຊ້'"
@@ -256,7 +273,7 @@ async function onConfirmDelete() {
       />
 
       <!-- Main Content -->
-      <UDashboardPanelContent scrollable class="p-0">
+      <div class="min-h-0 flex-1 overflow-y-auto p-0">
         <UTable
           ref="table"
           v-model:row-selection="rowSelection"
@@ -288,6 +305,12 @@ async function onConfirmDelete() {
               {{ row.original.role }}
             </UBadge>
           </template>
+
+          <template #status-cell="{ row }">
+            <UBadge :color="row.original.status === 'ACTIVE' ? 'success' : 'neutral'" variant="subtle" size="sm">
+              {{ row.original.status || (row.original.active ? 'ACTIVE' : 'INACTIVE') }}
+            </UBadge>
+          </template>
           
           <template #actions-cell="{ row }">
             <div class="flex items-center justify-end">
@@ -314,7 +337,7 @@ async function onConfirmDelete() {
             />
           </div>
         </div>
-      </UDashboardPanelContent>
+      </div>
     </template>
   </UDashboardPanel>
 </template>

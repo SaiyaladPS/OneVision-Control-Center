@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
+const { locale } = useAppLocale()
 
 const color = computed(() => colorMode.value === 'dark' ? '#1b1718' : 'white')
 
@@ -16,7 +17,7 @@ useHead({
     { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Public+Sans:wght@400;500;600&family=Noto+Sans+Lao:wght@400;700&display=swap' }
   ],
   htmlAttrs: {
-    lang: 'th'
+    lang: locale
   }
 })
 

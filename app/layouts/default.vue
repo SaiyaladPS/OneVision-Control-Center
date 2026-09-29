@@ -2,53 +2,58 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const open = ref(false)
+const { t } = useAppLocale()
 
-const links = [[{
-  label: 'Overview',
+const links = computed(() => [[{
+  label: t('nav.overview'),
   icon: 'i-lucide-house',
   to: '/dashboard'
 },
 {
-  label: 'Reports',
+  label: t('nav.reports'),
   icon: 'i-lucide-file-bar-chart',
   to: '/reports'
 },
 {
-  label: 'Data Registry',
+  label: t('nav.data'),
   icon: 'i-lucide-database',
   to: '/data'
 }, {
-  label: 'Dataset Manager',
+  label: t('nav.dataset'),
   icon: 'i-lucide-panels-top-left',
   to: '/dataset'
 }, {
-  label: 'CVAT Workspace',
+  label: t('nav.cvat'),
   icon: 'i-lucide-scan-line',
   to: '/cvat-workspace'
 }, {
-  label: 'Users & Access',
+  label: t('nav.users'),
   icon: 'i-lucide-users',
   to: '/users'
 }, {
-  label: 'CCTV Cameras',
+  label: t('nav.cameras'),
   icon: 'i-lucide-video',
   to: '/settings/cameras'
+}, {
+  label: t('nav.access'),
+  icon: 'i-lucide-shield-check',
+  to: '/access-control'
 }], [{
-  label: 'Settings',
+  label: t('nav.settings'),
   icon: 'i-lucide-settings',
   to: '/settings'
-}]] satisfies NavigationMenuItem[][]
+}]] satisfies NavigationMenuItem[][])
 
 const groups = computed(() => [{
   id: 'links',
-  label: 'Go to',
-  items: links.flat()
+  label: t('nav.goTo'),
+  items: links.value.flat()
 }, {
   id: 'help',
-  label: 'Workspace',
+  label: t('nav.workspace'),
   items: [{
     id: 'status',
-    label: 'System status',
+    label: t('nav.systemStatus'),
     icon: 'i-lucide-activity',
     to: '/dashboard'
   }]
@@ -95,7 +100,7 @@ const groups = computed(() => [{
       </template>
 
       <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
+        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" :label="t('nav.search')" />
 
         <UNavigationMenu
           :collapsed="collapsed"
@@ -119,6 +124,7 @@ const groups = computed(() => [{
       </template>
 
       <template #footer="{ collapsed }">
+        <LanguageSwitcher :collapsed="collapsed" />
         <UserMenu :collapsed="collapsed" />
       </template>
     </UDashboardSidebar>

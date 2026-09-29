@@ -2,7 +2,7 @@ import { customerService } from '../../services/customer.service'
 
 export default defineEventHandler(async (event) => {
     const { user } = await getUserSession(event)
-    if (!user || !['ADMIN', 'EDITOR'].includes((user as any).role)) {
+    if (!user || !['ADMIN', 'EDITOR', 'SUPERUSER'].includes((user as any).role)) {
         return sendApiError('Unauthorized', 403)
     }
 

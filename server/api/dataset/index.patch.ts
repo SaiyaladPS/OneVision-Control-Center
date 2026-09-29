@@ -1,5 +1,6 @@
 import { updateDatasetRecord, type DatasetEditInput } from '../../services/dataset.service'
 import { checkRole } from '../../utils/rbac'
+import { createApiError } from '../../utils/api-response'
 
 export default defineEventHandler(async (event) => {
   await checkRole(event, ['ADMIN', 'EDITOR'])
@@ -15,6 +16,6 @@ export default defineEventHandler(async (event) => {
   try {
     return sendSuccess(await updateDatasetRecord(id, body.changes, updatedBy), 'Dataset record updated')
   } catch (error) {
-    throw createError({ statusCode: 400, statusMessage: error instanceof Error ? error.message : 'Could not update dataset record' })
+    throw createApiError(error instanceof Error ? error.message : 'Could not update dataset record', 400)
   }
 })

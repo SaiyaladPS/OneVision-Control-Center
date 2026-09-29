@@ -23,17 +23,35 @@ export const sendSuccess = <T>(data: T, message?: string, meta?: any): ApiRespon
     }
 }
 
+const statusMessages: Record<number, string> = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    409: 'Conflict',
+    418: "I'm a teapot",
+    422: 'Unprocessable Entity',
+    500: 'Internal Server Error',
+    502: 'Bad Gateway',
+    503: 'Service Unavailable'
+}
+
+export const createApiError = (message: string, statusCode: number = 400, data?: unknown) => {
+    return createError({
+        statusCode,
+        statusMessage: statusMessages[statusCode] || 'Request failed',
+        message,
+        data
+    })
+}
+
 export const sendApiError = (message: string, statusCode: number = 400, errors?: any) => {
     // Log the error for server-side visibility
     apiLogger.error(`[${statusCode}] ${message}`, errors || '')
 
-    throw createError({
-        statusCode,
-        statusMessage: message,
-        data: {
-            success: false,
-            message,
-            errors
-        }
+    throw createApiError(message, statusCode, {
+        success: false,
+        message,
+        errors
     })
 }

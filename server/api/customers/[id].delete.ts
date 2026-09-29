@@ -2,7 +2,7 @@ import { customerService } from '../../services/customer.service'
 
 export default defineEventHandler(async (event) => {
     const { user } = await getUserSession(event)
-    if (!user || (user as any).role !== 'ADMIN') {
+    if (!user || !['ADMIN', 'SUPERUSER'].includes((user as any).role)) {
         return sendApiError('Only admins can delete customers', 403)
     }
 

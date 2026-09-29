@@ -1,25 +1,27 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
+const { t } = useAppLocale()
+
 definePageMeta({
   layout: 'default'
 })
 
-const links = [[{
-  label: 'General',
+const links = computed(() => [[{
+  label: t('settings.general'),
   icon: 'i-lucide-user',
   to: '/settings',
   exact: true
 }, {
-  label: 'Members',
+  label: t('settings.members'),
   icon: 'i-lucide-users',
   to: '/settings/members'
 }, {
-  label: 'Notifications',
+  label: t('settings.notifications'),
   icon: 'i-lucide-bell',
   to: '/settings/notifications'
 }, {
-  label: 'Security',
+  label: t('settings.security'),
   icon: 'i-lucide-shield',
   to: '/settings/security'
 }, {
@@ -27,21 +29,21 @@ const links = [[{
   icon: 'i-lucide-scan-line',
   to: '/settings/cvat'
 }, {
-  label: 'CCTV Cameras',
+  label: t('settings.cameras'),
   icon: 'i-lucide-video',
   to: '/settings/cameras'
 }], [{
-  label: 'Documentation',
+  label: t('settings.documentation'),
   icon: 'i-lucide-book-open',
   to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
   target: '_blank'
-}]] satisfies NavigationMenuItem[][]
+}]] satisfies NavigationMenuItem[][])
 </script>
 
 <template>
   <UDashboardPanel id="settings" :ui="{ body: 'lg:py-12' }">
     <template #header>
-      <UDashboardNavbar title="Settings">
+      <UDashboardNavbar :title="t('settings.title')">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>

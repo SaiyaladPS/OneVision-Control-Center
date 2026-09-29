@@ -100,6 +100,9 @@ copy .env.example .env
 # Shared Car Scan / OneVision PostgreSQL dataset
 DATABASE_URL="postgresql://postgres:รหัสผ่าน@localhost:5432/car_scan"
 
+# โฟลเดอร์ข้อมูล JSON และรูปจาก OneVision/Car Scan
+ONEVISION_DATA_ROOT=D:/project/OneVison/scan/data
+
 # Session Secret (ต้องมีความยาวอย่างน้อย 32 ตัวอักษร)
 NUXT_SESSION_PASSWORD=สตริงสุ่มของคุณอย่างน้อย32ตัวอักษร
 

@@ -27,7 +27,8 @@ export default defineEventHandler(async (event) => {
             username: user.username || '',
             name: user.name,
             avatar: '',
-            role: String(user.role || 'USER').toUpperCase()
+            role: String(user.role || 'USER').toUpperCase(),
+            status: String(user.status || 'ACTIVE').toUpperCase()
         },
         loggedInAt: new Date()
     })

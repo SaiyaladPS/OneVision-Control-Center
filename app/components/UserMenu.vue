@@ -22,12 +22,13 @@ const user = computed(() => ({
 }))
 
 const toast = useToast()
+const { t } = useAppLocale()
 
 const logout = async () => {
   await $fetch('/api/auth/logout', { method: 'POST' })
   
   toast.add({
-    title: 'ออกจากระบบสำเร็จ',
+    title: t('user.logout'),
     icon: 'i-lucide-check',
     color: 'success'
   })
@@ -41,7 +42,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
   avatar: user.value.avatar
 }], 
 [{
-  label: 'Profile',
+  label: t('user.profile'),
   icon: 'i-lucide-user'
 }, 
 // {
@@ -55,7 +56,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
 // }
 ], 
 [{
-  label: 'Theme',
+  label: t('user.theme'),
   icon: 'i-lucide-palette',
   children: [{
     label: 'Primary',
@@ -100,10 +101,10 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
   }]
 }, 
 {
-  label: 'Appearance',
+  label: t('user.appearance'),
   icon: 'i-lucide-sun-moon',
   children: [{
-    label: 'Light',
+    label: t('user.light'),
     icon: 'i-lucide-sun',
     type: 'checkbox',
     checked: colorMode.value === 'light',
@@ -113,7 +114,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
       colorMode.preference = 'light'
     }
   }, {
-    label: 'Dark',
+    label: t('user.dark'),
     icon: 'i-lucide-moon',
     type: 'checkbox',
     checked: colorMode.value === 'dark',
@@ -182,7 +183,7 @@ const items = computed<DropdownMenuItem[][]>(() => ([[{
 //   target: '_blank'
 // }, 
 {
-  label: 'Log out',
+  label: t('user.logout'),
   icon: 'i-lucide-log-out',
   onSelect: logout
 }]]))

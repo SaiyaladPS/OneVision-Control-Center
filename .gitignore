@@ -55,5 +55,7 @@ jspm_packages/
 Thumbs.db
 
 # Prisma
-/prisma/migrations/
+/prisma/migrations/*
+!/prisma/migrations/20260929140000_user_role_status_catalog/
+!/prisma/migrations/20260929140000_user_role_status_catalog/migration.sql
 /app/generated/prisma

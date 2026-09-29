@@ -55,6 +55,7 @@ interface DatasetUpdateResponse {
 }
 
 const toast = useToast()
+const { t } = useAppLocale()
 const page = ref(1)
 const pageSize = ref(20)
 const search = ref('')
@@ -96,9 +97,17 @@ const { data: response, pending, refresh } = useApi<DatasetPayload>(() => {
 const dataset = computed(() => response.value?.data)
 const records = computed(() => dataset.value?.items || [])
 const stats = computed(() => dataset.value?.stats || { total: 0, exportable: 0, pass: 0, review: 0, reject: 0, missingImages: 0 })
+const hasFilters = computed(() => Boolean(search.value || selectedDate.value !== 'all' || selectedCountry.value !== 'all' || selectedStatus.value !== 'all'))
 const pageIds = computed(() => records.value.map(record => record.id))
 const selectedOnPage = computed(() => pageIds.value.filter(id => selectedIds.value.includes(id)).length)
 const allPageSelected = computed(() => pageIds.value.length > 0 && selectedOnPage.value === pageIds.value.length)
+const pageSizeOptions = [20, 50, 100].map(value => ({ label: String(value), value }))
+const quickFilters = computed(() => [
+  { label: t('dataset.all'), value: 'all' },
+  { label: t('dataset.pass'), value: 'PASS' },
+  { label: t('dataset.review'), value: 'REVIEW' },
+  { label: t('dataset.reject'), value: 'REJECT' }
+])
 
 watch([pageSize, selectedDate, selectedCountry, selectedStatus], () => {
   page.value = 1
@@ -133,6 +142,21 @@ function formatDate(value: string) {
 function formatBytes(value: number) {
   if (!value) return '—'
   return `${(value / 1024 / 1024).toFixed(1)} MB`
+}
+
+function countryLabel(country: DatasetRecord['country']) {
+  return country === 'thai' ? t('dataset.thai') : t('dataset.lao')
+}
+
+function statusLabel(status: DatasetStatus) {
+  return status === 'PASS' ? t('dataset.pass') : status === 'REVIEW' ? t('dataset.review') : t('dataset.reject')
+}
+
+function clearFilters() {
+  search.value = ''
+  selectedDate.value = 'all'
+  selectedCountry.value = 'all'
+  selectedStatus.value = 'all'
 }
 
 function openDetail(record: DatasetRecord) {
@@ -173,7 +197,7 @@ async function saveEdit() {
         }
       }
     }),
-    { successMessage: 'CVAT annotation and database record updated.' }
+    { successMessage: t('dataset.saveChanges') }
   )
   if (!error) {
     editing.value = false
@@ -281,9 +305,9 @@ async function exportDataset(mode: 'selected' | 'filtered') {
     link.download = result.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] || 'onevision-yolo-detection.zip'
     link.click()
     URL.revokeObjectURL(url)
-    toast.add({ title: 'Export ready', description: `${result.headers.get('x-onevision-exported') || 0} images exported in Ultralytics YOLO Detection 1.0 format.`, color: 'success' })
+    toast.add({ title: t('dataset.exportReady'), description: `${result.headers.get('x-onevision-exported') || 0} ${t('dataset.exportedImages')}.`, color: 'success' })
   } catch (error: unknown) {
-    toast.add({ title: 'Export failed', description: error instanceof Error ? error.message : 'Could not build the dataset archive.', color: 'error' })
+    toast.add({ title: t('dataset.exportFailed'), description: error instanceof Error ? error.message : t('dataset.exportError'), color: 'error' })
   } finally {
     exporting.value = false
   }
@@ -306,7 +330,7 @@ async function confirmDelete() {
   const ids = target.ids
   const { error } = await deleteDataset(
     () => $fetch<DatasetDeleteResponse>('/api/dataset', { method: 'DELETE', body: { ids } }),
-    { successMessage: `${ids.length} dataset record${ids.length === 1 ? '' : 's'} and associated image${ids.length === 1 ? '' : 's'} deleted.` }
+    { successMessage: `${ids.length} ${t('dataset.records')} deleted.` }
   )
   if (!error) {
     selectedIds.value = selectedIds.value.filter(id => !ids.includes(id))
@@ -327,7 +351,7 @@ async function confirmDelete() {
 <template>
   <UDashboardPanel id="dataset-manager" grow>
     <template #header>
-      <UDashboardNavbar title="Dataset Manager">
+      <UDashboardNavbar :title="t('dataset.title')">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -336,7 +360,7 @@ async function confirmDelete() {
             icon="i-lucide-refresh-cw"
             color="neutral"
             variant="outline"
-            label="Refresh from OneVision"
+            :label="t('dataset.refresh')"
             :loading="pending"
             @click="() => refresh()"
           />
@@ -347,36 +371,27 @@ async function confirmDelete() {
           <UInput
             v-model="search"
             icon="i-lucide-search"
-            placeholder="Search plate, province or file..."
+            :placeholder="t('dataset.search')"
             class="w-64"
           />
-          <USelect v-model="selectedDate" :items="[{ label: 'All dates', value: 'all' }, ...(dataset?.dates || []).map(date => ({ label: formatDate(date), value: date }))]" class="w-36" />
-          <USelect v-model="selectedCountry" :items="[{ label: 'All countries', value: 'all' }, { label: 'Thai', value: 'thai' }, { label: 'Lao', value: 'laos' }]" class="w-36" />
-          <USelect v-model="selectedStatus" :items="[{ label: 'All QC status', value: 'all' }, { label: 'PASS', value: 'PASS' }, { label: 'REVIEW', value: 'REVIEW' }, { label: 'REJECT', value: 'REJECT' }]" class="w-36" />
+          <USelect v-model="selectedDate" :items="[{ label: t('dataset.allDates'), value: 'all' }, ...(dataset?.dates || []).map(date => ({ label: formatDate(date), value: date }))]" class="w-36" />
+          <USelect v-model="selectedCountry" :items="[{ label: t('dataset.allCountries'), value: 'all' }, { label: t('dataset.thai'), value: 'thai' }, { label: t('dataset.lao'), value: 'laos' }]" class="w-36" />
+          <USelect v-model="selectedStatus" :items="[{ label: t('dataset.allStatus'), value: 'all' }, { label: t('dataset.pass'), value: 'PASS' }, { label: t('dataset.review'), value: 'REVIEW' }, { label: t('dataset.reject'), value: 'REJECT' }]" class="w-36" />
+          <UButton
+            v-if="hasFilters"
+            :label="t('dataset.clearFilters')"
+            color="neutral"
+            variant="ghost"
+            @click="clearFilters"
+          />
         </template>
         <template #right>
-          <UButton
-            v-if="selectedIds.length"
-            icon="i-lucide-trash-2"
-            color="error"
-            variant="subtle"
-            :label="`Delete selected (${selectedIds.length})`"
-            :loading="deleting"
-            @click="startBulkDelete"
-          />
-          <UButton
-            v-if="selectedIds.length"
-            icon="i-lucide-download"
-            :loading="exporting"
-            :label="`Export selected (${selectedIds.length})`"
-            @click="exportDataset('selected')"
-          />
           <UButton
             icon="i-lucide-package-check"
             color="neutral"
             variant="outline"
             :loading="exporting"
-            label="Export filtered"
+            :label="t('dataset.exportFiltered')"
             @click="exportDataset('filtered')"
           />
         </template>
@@ -384,8 +399,8 @@ async function confirmDelete() {
     </template>
 
     <template #body>
-      <UDashboardPanelContent scrollable class="space-y-6 p-4 sm:p-6 lg:p-8">
-        <div class="rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-900 dark:bg-cyan-950/20">
+      <div class="min-h-0 flex-1 overflow-y-auto space-y-6 p-4 sm:p-6 lg:p-8">
+        <div class="rounded-2xl border border-cyan-200 bg-gradient-to-br from-cyan-50 via-white to-indigo-50 p-4 shadow-sm dark:border-cyan-900 dark:from-cyan-950/30 dark:via-default dark:to-indigo-950/20">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-start gap-3">
               <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-700 dark:text-cyan-300">
@@ -393,88 +408,180 @@ async function confirmDelete() {
               </div>
               <div>
                 <p class="font-semibold text-highlighted">
-                  OneVision scan archive
+                  {{ t('dataset.archiveTitle') }}
                 </p>
                 <p class="mt-1 text-xs text-muted">
-                  อ่านข้อมูลจาก <span class="font-mono">{{ dataset?.root || 'scan/data' }}</span> · PASS เป็น pre-label ที่ควรตรวจสอบก่อนนำไป train
+                  {{ t('dataset.archiveDescription') }} <span class="font-mono">{{ dataset?.root || 'scan/data' }}</span>
+                  <span class="block">{{ t('dataset.envHint') }} · {{ t('dataset.reviewHint') }}</span>
                 </p>
               </div>
             </div>
             <UBadge color="info" variant="subtle">
-              Ultralytics YOLO Detection 1.0
+              {{ t('dataset.format') }}
             </UBadge>
           </div>
         </div>
 
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <UCard :ui="{ body: 'p-4' }">
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+          <UCard :ui="{ body: 'p-4' }" class="border-l-4 border-l-slate-400 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <p class="text-xs uppercase tracking-wider text-muted">
-              ทั้งหมด
+              {{ t('dataset.total') }}
             </p><p class="mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.total.toLocaleString() }}
             </p><p class="mt-1 text-xs text-muted">
-              scan records
+              {{ t('dataset.records') }}
             </p>
           </UCard>
-          <UCard :ui="{ body: 'p-4' }">
+          <UCard :ui="{ body: 'p-4' }" class="border-l-4 border-l-emerald-400 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <p class="text-xs uppercase tracking-wider text-muted">
-              Exportable
+              {{ t('dataset.exportable') }}
             </p><p class="mt-2 text-2xl font-semibold text-emerald-600">
               {{ stats.exportable.toLocaleString() }}
             </p><p class="mt-1 text-xs text-muted">
-              image + valid box
+              {{ t('dataset.validBox') }}
             </p>
           </UCard>
-          <UCard :ui="{ body: 'p-4' }">
+          <UCard :ui="{ body: 'p-4' }" class="border-l-4 border-l-blue-400 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <p class="text-xs uppercase tracking-wider text-muted">
-              PASS
+              {{ t('dataset.pass') }}
             </p><p class="mt-2 text-2xl font-semibold text-highlighted">
               {{ stats.pass.toLocaleString() }}
             </p><p class="mt-1 text-xs text-muted">
-              pre-label ready
+              {{ t('dataset.prelabelReady') }}
             </p>
           </UCard>
-          <UCard :ui="{ body: 'p-4' }">
+          <UCard :ui="{ body: 'p-4' }" class="border-l-4 border-l-amber-400 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <p class="text-xs uppercase tracking-wider text-muted">
-              Review
+              {{ t('dataset.review') }}
             </p><p class="mt-2 text-2xl font-semibold text-amber-600">
               {{ stats.review.toLocaleString() }}
             </p><p class="mt-1 text-xs text-muted">
-              needs checking
+              {{ t('dataset.needsChecking') }}
             </p>
           </UCard>
-          <UCard :ui="{ body: 'p-4' }">
+          <UCard :ui="{ body: 'p-4' }" class="border-l-4 border-l-red-400 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
             <p class="text-xs uppercase tracking-wider text-muted">
-              Missing image
+              {{ t('dataset.reject') }}
+            </p><p class="mt-2 text-2xl font-semibold text-red-600">
+              {{ stats.reject.toLocaleString() }}
+            </p><p class="mt-1 text-xs text-muted">
+              {{ t('dataset.rejected') }}
+            </p>
+          </UCard>
+          <UCard :ui="{ body: 'p-4' }" class="border-l-4 border-l-rose-400 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <p class="text-xs uppercase tracking-wider text-muted">
+              {{ t('dataset.missingImage') }}
             </p><p class="mt-2 text-2xl font-semibold text-red-600">
               {{ stats.missingImages.toLocaleString() }}
             </p><p class="mt-1 text-xs text-muted">
-              excluded from export
+              {{ t('dataset.excluded') }}
             </p>
           </UCard>
         </div>
 
-        <UCard :ui="{ body: 'p-0' }" class="overflow-hidden">
-          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-default bg-elevated/30 px-4 py-3">
-            <div class="flex items-center gap-3">
-              <UCheckbox :model-value="allPageSelected" aria-label="Select current page" @update:model-value="togglePageSelection" /><span class="text-sm text-muted">เลือกหน้านี้ {{ selectedOnPage }}/{{ records.length }} · พบ {{ dataset?.total?.toLocaleString() || 0 }} รายการ</span>
+        <div class="flex flex-col gap-3 rounded-2xl border border-default bg-elevated/20 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="mr-1 text-xs font-semibold uppercase tracking-wider text-muted">{{ t('dataset.quickFilters') }}</span>
+            <UButton
+              v-for="filter in quickFilters"
+              :key="filter.value"
+              :label="filter.label"
+              :color="selectedStatus === filter.value ? 'primary' : 'neutral'"
+              :variant="selectedStatus === filter.value ? 'soft' : 'ghost'"
+              size="sm"
+              @click="selectedStatus = filter.value"
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-muted">{{ t('dataset.pageSize') }}</span>
+            <USelect
+              v-model="pageSize"
+              :items="pageSizeOptions"
+              size="sm"
+              class="w-20"
+            />
+          </div>
+        </div>
+
+        <UCard :ui="{ body: 'p-0' }" class="overflow-hidden shadow-sm">
+          <div class="flex flex-col gap-1 border-b border-default px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-2">
+              <div class="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <UIcon name="i-lucide-list-checks" class="size-4" />
+              </div>
+              <div>
+                <p class="font-semibold text-highlighted">
+                  {{ t('dataset.recordsTitle') }}
+                </p>
+                <p class="text-xs text-muted">
+                  {{ t('dataset.listDescription') }}
+                </p>
+              </div>
             </div>
-            <span class="text-xs text-muted">แสดงหน้า {{ page }} จาก {{ dataset?.totalPages || 1 }}</span>
+            <UBadge color="neutral" variant="subtle" class="w-fit">
+              {{ dataset?.total?.toLocaleString() || 0 }} {{ t('dataset.records') }}
+            </UBadge>
+          </div>
+          <div v-if="selectedIds.length" class="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 bg-primary/5 px-4 py-3">
+            <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+              <UIcon name="i-lucide-check-square" class="size-4 text-primary" />
+              {{ t('dataset.selectedCount', { n: selectedIds.length }) }}
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <UButton
+                icon="i-lucide-download"
+                size="sm"
+                :loading="exporting"
+                :label="t('dataset.exportSelected')"
+                @click="exportDataset('selected')"
+              />
+              <UButton
+                icon="i-lucide-trash-2"
+                color="error"
+                variant="subtle"
+                size="sm"
+                :label="t('dataset.deleteSelected')"
+                :loading="deleting"
+                @click="startBulkDelete"
+              />
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                :label="t('dataset.clearSelection')"
+                @click="selectedIds = []"
+              />
+            </div>
+          </div>
+          <div class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-default bg-elevated/80 px-4 py-3 backdrop-blur">
+            <div class="flex items-center gap-3">
+              <UCheckbox :model-value="allPageSelected" :aria-label="t('dataset.selectPage')" @update:model-value="togglePageSelection" /><span class="text-sm text-muted">{{ t('dataset.selectPage') }} {{ selectedOnPage }}/{{ records.length }} · {{ t('dataset.found') }} {{ dataset?.total?.toLocaleString() || 0 }} {{ t('dataset.records') }}</span>
+            </div>
+            <span class="text-xs text-muted">{{ t('dataset.pageOf', { page: String(page), pages: String(dataset?.totalPages || 1) }) }}</span>
           </div>
           <div v-if="pending" class="space-y-3 p-5">
             <USkeleton v-for="index in 8" :key="index" class="h-16 w-full" />
           </div>
           <div v-else-if="records.length === 0" class="flex flex-col items-center justify-center gap-3 px-5 py-16 text-center">
             <UIcon name="i-lucide-database-zap" class="size-9 text-muted" /><p class="font-medium text-highlighted">
-              ไม่พบข้อมูล dataset
+              {{ t('dataset.emptyTitle') }}
             </p><p class="text-sm text-muted">
-              ลองเปลี่ยนตัวกรองหรือกด Refresh from OneVision
+              {{ t('dataset.emptyDescription') }}
             </p>
           </div>
           <div v-else>
-            <div v-for="record in records" :key="record.id" class="grid gap-3 border-b border-default px-4 py-4 transition hover:bg-elevated/40 sm:grid-cols-[auto_auto_minmax(0,1.5fr)_minmax(0,1fr)_auto_auto_auto] sm:items-center">
-              <UCheckbox :model-value="selectedIds.includes(record.id)" :aria-label="`Select ${record.filename}`" @update:model-value="toggleRecord(record.id)" />
-              <button class="size-12 overflow-hidden rounded-lg border border-default bg-elevated/50" :aria-label="`Preview ${record.plateText}`" @click="openDetail(record)">
+            <div class="hidden border-b border-default bg-elevated/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted sm:grid sm:grid-cols-[auto_auto_minmax(0,1.5fr)_minmax(0,1fr)_auto_auto_auto_auto] sm:items-center sm:gap-3">
+              <span />
+              <span />
+              <span>{{ t('dataset.recordColumn') }}</span>
+              <span>{{ t('dataset.locationColumn') }}</span>
+              <span>{{ t('dataset.qualityColumn') }}</span>
+              <span>{{ t('dataset.confidenceColumn') }}</span>
+              <span class="col-span-2 text-right">{{ t('dataset.actionsColumn') }}</span>
+            </div>
+            <div v-for="record in records" :key="record.id" class="group grid gap-3 border-b border-default px-4 py-4 transition hover:bg-primary/5 sm:grid-cols-[auto_auto_minmax(0,1.5fr)_minmax(0,1fr)_auto_auto_auto_auto] sm:items-center">
+              <UCheckbox :model-value="selectedIds.includes(record.id)" :aria-label="`${t('dataset.selectRecord')} ${record.filename}`" @update:model-value="toggleRecord(record.id)" />
+              <button class="size-12 overflow-hidden rounded-lg border border-default bg-elevated/50 shadow-sm transition group-hover:border-primary/50 group-hover:shadow-md" :aria-label="`${t('dataset.preview')} ${record.plateText}`" @click="openDetail(record)">
                 <img
                   :src="imageUrl(record)"
                   :alt="record.plateText"
@@ -483,7 +590,7 @@ async function confirmDelete() {
                 >
               </button>
               <button class="min-w-0 text-left" @click="openDetail(record)">
-                <p class="truncate font-mono text-sm font-semibold text-highlighted">
+                <p class="truncate font-mono text-sm font-semibold text-highlighted transition group-hover:text-primary">
                   {{ record.plateText }}
                 </p><p class="mt-1 truncate text-xs text-muted">
                   {{ record.filename }}
@@ -491,71 +598,91 @@ async function confirmDelete() {
               </button>
               <div class="min-w-0">
                 <p class="truncate text-sm text-highlighted">
-                  {{ record.province || 'Unknown province' }}
+                  {{ record.province || t('dataset.unknownProvince') }}
                 </p><p class="mt-1 text-xs text-muted">
-                  {{ formatDate(record.date) }} · {{ record.country === 'thai' ? 'Thai' : 'Lao' }} · {{ formatBytes(record.fileSize) }}
+                  {{ formatDate(record.date) }} · {{ countryLabel(record.country) }} · {{ formatBytes(record.fileSize) }}
                 </p>
               </div>
-              <UBadge :color="statusColor(record.status)" variant="subtle" size="sm">
-                {{ record.status }}
+              <UBadge
+                :color="statusColor(record.status)"
+                variant="subtle"
+                size="sm"
+                class="w-fit"
+              >
+                {{ statusLabel(record.status) }}
               </UBadge>
               <div class="text-right">
                 <p class="text-sm text-highlighted">
                   {{ (record.confidence * 100).toFixed(1) }}%
-                </p><p class="mt-1 text-xs" :class="record.labelReady ? 'text-emerald-600' : 'text-red-500'">
-                  {{ record.labelReady ? 'ready' : 'skipped' }}
+                </p>
+                <div class="ml-auto mt-1 h-1.5 w-16 overflow-hidden rounded-full bg-elevated">
+                  <div
+                    class="h-full rounded-full bg-primary transition-all"
+                    :style="{ width: `${Math.max(4, record.confidence * 100)}%` }"
+                  />
+                </div>
+                <p class="mt-1 text-xs" :class="record.labelReady ? 'text-emerald-600' : 'text-red-500'">
+                  {{ record.labelReady ? t('dataset.ready') : t('dataset.skipped') }}
                 </p>
               </div>
+              <UButton
+                icon="i-lucide-eye"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                :aria-label="`${t('dataset.openDetails')} ${record.filename}`"
+                @click="openDetail(record)"
+              />
               <UButton
                 icon="i-lucide-trash-2"
                 color="error"
                 variant="ghost"
                 size="sm"
-                :aria-label="`Delete ${record.filename}`"
+                :aria-label="`${t('dataset.delete')} ${record.filename}`"
                 :loading="deleting && deleteTarget?.ids.includes(record.id)"
                 @click="startDelete(record)"
               />
             </div>
           </div>
           <div class="flex flex-wrap items-center justify-between gap-3 border-t border-default bg-elevated/20 p-4">
-            <span class="text-xs text-muted">เลือกรวม {{ selectedIds.length }} รายการ</span><UPagination v-model:page="page" :total="dataset?.total || 0" :items-per-page="pageSize" />
+            <span class="text-xs text-muted">{{ t('dataset.selectedCount', { n: selectedIds.length }) }}</span><UPagination v-model:page="page" :total="dataset?.total || 0" :items-per-page="pageSize" />
           </div>
         </UCard>
 
-        <UModal v-model:open="detailOpen" title="Dataset record details">
+        <UModal v-model:open="detailOpen" :title="t('dataset.details')">
           <template #body>
             <div v-if="selectedRecord" class="space-y-5">
               <div v-if="editing" class="space-y-4 rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4">
                 <div>
                   <p class="font-semibold text-highlighted">
-                    Edit CVAT annotation
+                    {{ t('dataset.editAnnotation') }}
                   </p>
                   <p class="mt-1 text-xs text-muted">
-                    Changes are saved to the source JSON and PostgreSQL database.
+                    {{ t('dataset.editDescription') }}
                   </p>
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
-                  <UFormField label="Country">
-                    <USelect v-model="editForm.country" :items="[{ label: 'Thai', value: 'thai' }, { label: 'Lao', value: 'laos' }]" class="w-full" />
+                  <UFormField :label="t('dataset.country')">
+                    <USelect v-model="editForm.country" :items="[{ label: t('dataset.thai'), value: 'thai' }, { label: t('dataset.lao'), value: 'laos' }]" class="w-full" />
                   </UFormField>
-                  <UFormField label="QC status">
-                    <USelect v-model="editForm.status" :items="[{ label: 'PASS', value: 'PASS' }, { label: 'REVIEW', value: 'REVIEW' }, { label: 'REJECT', value: 'REJECT' }]" class="w-full" />
+                  <UFormField :label="t('dataset.status')">
+                    <USelect v-model="editForm.status" :items="[{ label: t('dataset.pass'), value: 'PASS' }, { label: t('dataset.review'), value: 'REVIEW' }, { label: t('dataset.reject'), value: 'REJECT' }]" class="w-full" />
                   </UFormField>
-                  <UFormField label="Province">
+                  <UFormField :label="t('dataset.province')">
                     <UInput v-model="editForm.province" class="w-full" />
                   </UFormField>
                   <div class="grid grid-cols-2 gap-3">
-                    <UFormField label="Prefix">
+                    <UFormField :label="t('dataset.prefix')">
                       <UInput v-model="editForm.platePrefix" class="w-full" />
                     </UFormField>
-                    <UFormField label="Number">
+                    <UFormField :label="t('dataset.number')">
                       <UInput v-model="editForm.plateNumber" class="w-full" />
                     </UFormField>
                   </div>
                 </div>
                 <div>
                   <p class="mb-2 text-sm font-medium text-highlighted">
-                    Bounding box (left, top, right, bottom)
+                    {{ t('dataset.boundingBox') }}
                   </p>
                   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <UInput
@@ -564,20 +691,20 @@ async function confirmDelete() {
                       v-model.number="editForm.box[index]"
                       type="number"
                       min="0"
-                      :placeholder="['Left', 'Top', 'Right', 'Bottom'][index]"
+                      :placeholder="[t('dataset.left'), t('dataset.top'), t('dataset.right'), t('dataset.bottom')][index]"
                     />
                   </div>
                 </div>
                 <div class="flex justify-end gap-2">
                   <UButton
-                    label="Cancel"
+                    :label="t('dataset.cancel')"
                     color="neutral"
                     variant="ghost"
                     :disabled="saving"
                     @click="editing = false"
                   />
                   <UButton
-                    label="Save changes"
+                    :label="t('dataset.saveChanges')"
                     icon="i-lucide-save"
                     :loading="saving"
                     @click="saveEdit"
@@ -594,7 +721,7 @@ async function confirmDelete() {
                 </div>
                 <div class="flex items-center gap-2">
                   <UBadge :color="statusColor(selectedRecord.status)" variant="subtle">
-                    {{ selectedRecord.status }}
+                    {{ statusLabel(selectedRecord.status) }}
                   </UBadge>
                   <UButton
                     v-if="!editing"
@@ -602,7 +729,7 @@ async function confirmDelete() {
                     color="primary"
                     variant="soft"
                     size="sm"
-                    label="Edit"
+                    :label="t('dataset.edit')"
                     @click="startEdit(selectedRecord)"
                   />
                   <UButton
@@ -610,7 +737,7 @@ async function confirmDelete() {
                     color="error"
                     variant="soft"
                     size="sm"
-                    label="Delete"
+                    :label="t('dataset.delete')"
                     :loading="deleting"
                     @click="startDelete(selectedRecord)"
                   />
@@ -625,7 +752,7 @@ async function confirmDelete() {
                     variant="solid"
                     size="xs"
                     class="absolute right-2 top-2 z-10 shadow-lg"
-                    aria-label="Enlarge full vehicle image"
+                    :aria-label="t('dataset.enlargeFull')"
                     @click.stop="openImagePreview(selectedRecord, 'full')"
                   />
                 </div>
@@ -637,7 +764,7 @@ async function confirmDelete() {
                     variant="solid"
                     size="xs"
                     class="absolute right-2 top-2 z-10 shadow-lg"
-                    aria-label="Enlarge plate crop image"
+                    :aria-label="t('dataset.enlargeCrop')"
                     @click.stop="openImagePreview(selectedRecord, 'crop')"
                   />
                 </div>
@@ -667,52 +794,52 @@ async function confirmDelete() {
                     variant="solid"
                     size="xs"
                     class="absolute right-2 top-2 z-10 shadow-lg"
-                    aria-label="Enlarge character boxes image"
+                    :aria-label="t('dataset.enlargeBoxes')"
                     @click.stop="openImagePreview(selectedRecord, 'boxes')"
                   />
                 </div>
               </div>
               <div class="flex gap-4 text-xs text-muted">
-                <span><UIcon name="i-lucide-image" class="mr-1 inline size-3" />Full vehicle</span>
-                <span><UIcon name="i-lucide-scan-line" class="mr-1 inline size-3" />Plate crop</span>
-                <span><UIcon name="i-lucide-square-dashed" class="mr-1 inline size-3" />{{ selectedRecord.tokenBoxes.length ? `Character boxes (${selectedRecord.tokenBoxes.length})` : selectedRecord.box ? 'Bounding box' : 'Crop ROI' }}</span>
+                <span><UIcon name="i-lucide-image" class="mr-1 inline size-3" />{{ t('dataset.fullVehicle') }}</span>
+                <span><UIcon name="i-lucide-scan-line" class="mr-1 inline size-3" />{{ t('dataset.plateCrop') }}</span>
+                <span><UIcon name="i-lucide-square-dashed" class="mr-1 inline size-3" />{{ selectedRecord.tokenBoxes.length ? `${t('dataset.characterBoxes')} (${selectedRecord.tokenBoxes.length})` : selectedRecord.box ? t('dataset.boundingBoxShort') : t('dataset.cropRoi') }}</span>
               </div>
               <div class="grid gap-4 sm:grid-cols-2">
                 <div>
                   <p class="text-xs text-muted">
-                    Source image
+                    {{ t('dataset.sourceImage') }}
                   </p><p class="mt-1 break-all font-mono text-xs text-highlighted">
-                    {{ selectedRecord.sourceImage || 'Not found' }}
+                    {{ selectedRecord.sourceImage || t('dataset.notFound') }}
                   </p>
                 </div><div>
                   <p class="text-xs text-muted">
-                    Image size
+                    {{ t('dataset.imageSize') }}
                   </p><p class="mt-1 text-sm text-highlighted">
                     {{ selectedRecord.imageWidth && selectedRecord.imageHeight ? `${selectedRecord.imageWidth} × ${selectedRecord.imageHeight}` : '—' }}
                   </p>
                 </div><div>
                   <p class="text-xs text-muted">
-                    Bounding box
+                    {{ t('dataset.boundingBoxShort') }}
                   </p><p class="mt-1 font-mono text-xs text-highlighted">
                     {{ selectedRecord.box?.join(', ') || '—' }}
                   </p>
                 </div><div>
                   <p class="text-xs text-muted">
-                    QC reasons
+                    {{ t('dataset.qcReasons') }}
                   </p><p class="mt-1 text-sm text-highlighted">
-                    {{ selectedRecord.qcReasons.length ? selectedRecord.qcReasons.join(', ') : 'No reason recorded' }}
+                    {{ selectedRecord.qcReasons.length ? selectedRecord.qcReasons.join(', ') : t('dataset.noReason') }}
                   </p>
                 </div>
                 <div>
                   <p class="text-xs text-muted">
-                    Character boxes
+                    {{ t('dataset.characterBoxes') }}
                   </p><p class="mt-1 text-sm text-highlighted">
                     {{ selectedRecord.tokenBoxes.length || '—' }}
                   </p>
                 </div>
               </div>
               <div class="rounded-xl bg-elevated/50 p-3 text-xs text-muted">
-                Class 0: <span class="font-semibold text-highlighted">license_plate</span> · {{ selectedRecord.labelReady ? 'พร้อมสร้าง YOLO label' : 'จะถูกข้ามตอน export เนื่องจากภาพหรือ bounding box ไม่พร้อม' }}
+                Class 0: <span class="font-semibold text-highlighted">license_plate</span> · {{ selectedRecord.labelReady ? t('dataset.classLabel') : t('dataset.classSkipped') }}
               </div>
             </div>
           </template>
@@ -720,16 +847,16 @@ async function confirmDelete() {
 
         <ConfirmModal
           v-model:open="deleteConfirmOpen"
-          :title="deleteTarget?.type === 'bulk' ? 'Delete selected dataset records' : 'Delete dataset record'"
-          :description="`This permanently deletes ${deleteTarget?.ids.length || 0} JSON record${deleteTarget?.ids.length === 1 ? '' : 's'} and their associated vehicle, crop, and OCR images.`"
-          confirm-label="Delete permanently"
-          cancel-label="Cancel"
+          :title="deleteTarget?.type === 'bulk' ? t('dataset.deleteSelectedTitle') : t('dataset.deleteTitle')"
+          :description="`${t('dataset.deleteDescription')} (${deleteTarget?.ids.length || 0} ${t('dataset.records')}).`"
+          :confirm-label="t('dataset.deletePermanently')"
+          :cancel-label="t('dataset.cancel')"
           :loading="deleting"
           @confirm="confirmDelete"
           @close="deleteTarget = null"
         />
 
-        <UModal v-model:open="previewOpen" title="Image preview" :ui="{ content: 'sm:max-w-6xl' }">
+        <UModal v-model:open="previewOpen" :title="t('dataset.imagePreview')" :ui="{ content: 'sm:max-w-6xl' }">
           <template #body>
             <div v-if="selectedRecord" class="w-full">
               <div v-if="previewVariant === 'boxes'" class="max-h-[78vh] overflow-auto rounded-xl bg-black/80 p-2">
@@ -761,12 +888,12 @@ async function confirmDelete() {
                 >
               </div>
               <p class="mt-3 text-center text-xs text-muted">
-                {{ previewVariant === 'full' ? 'Full vehicle' : previewVariant === 'crop' ? 'Plate crop' : `Character boxes (${selectedRecord.tokenBoxes.length})` }} · กดปุ่มปิดเพื่อกลับไปยังรายละเอียดรายการ
+                {{ previewVariant === 'full' ? t('dataset.fullVehicle') : previewVariant === 'crop' ? t('dataset.plateCrop') : `${t('dataset.characterBoxes')} (${selectedRecord.tokenBoxes.length})` }}
               </p>
             </div>
           </template>
         </UModal>
-      </UDashboardPanelContent>
+      </div>
     </template>
   </UDashboardPanel>
 </template>
